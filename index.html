@@ -3,28 +3,28 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>HERCU OTG</title>
+<title>Hercu OTG</title>
 
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
 <style>
 body {margin:0;font-family:Arial;background:#eef2f7;}
-.header {background:#4f46e5;color:white;padding:18px;text-align:center;font-weight:bold;}
-.container {padding:15px;}
+.header {background:#4f46e5;color:white;padding:15px;text-align:center;font-weight:bold;}
+.container {padding:12px;max-width:500px;margin:auto;}
 .card {background:white;padding:15px;margin-bottom:12px;border-radius:12px;}
 input, select {width:100%;padding:12px;margin-top:8px;border-radius:10px;border:1px solid #ccc;}
-button {width:100%;padding:14px;margin-top:10px;border-radius:10px;border:none;background:#4f46e5;color:white;}
-.option {margin-top:8px;padding:10px;background:#f1f5f9;border-radius:8px;}
+button {width:100%;padding:13px;margin-top:10px;border:none;border-radius:10px;background:#4f46e5;color:white;}
+.option {background:#f1f5f9;padding:10px;border-radius:8px;margin-top:6px;}
 </style>
 </head>
 
 <body>
+
 <div class="header">📘 HERCU OTG</div>
 
 <div class="container">
 
-<!-- LOGIN -->
 <div id="loginBox" class="card">
   <input id="namaInput" placeholder="Nama">
 
@@ -33,23 +33,15 @@ button {width:100%;padding:14px;margin-top:10px;border-radius:10px;border:none;b
     <option value="guru">Guru</option>
   </select>
 
-  <!-- KELAS (HANYA MURID) -->
   <div id="kelasBox">
     <select id="kelasSelect">
-      <option value="10A">10 A</option>
-      <option value="10B">10 B</option>
-      <option value="10C">10 C</option>
-      <option value="10D">10 D</option>
-      <option value="10E">10 E</option>
-      <option value="10F">10 F</option>
+      <option value="10A">10 A</option><option value="10B">10 B</option>
+      <option value="10C">10 C</option><option value="10D">10 D</option>
+      <option value="10E">10 E</option><option value="10F">10 F</option>
       <option value="10G">10 G</option>
-
-      <option value="11A">11 A</option>
-      <option value="11B">11 B</option>
-      <option value="11C">11 C</option>
-      <option value="11D">11 D</option>
-      <option value="11E">11 E</option>
-      <option value="11F">11 F</option>
+      <option value="11A">11 A</option><option value="11B">11 B</option>
+      <option value="11C">11 C</option><option value="11D">11 D</option>
+      <option value="11E">11 E</option><option value="11F">11 F</option>
       <option value="11G">11 G</option>
     </select>
   </div>
@@ -64,41 +56,29 @@ button {width:100%;padding:14px;margin-top:10px;border-radius:10px;border:none;b
 </div>
 
 <script>
-// FIREBASE
 const firebaseConfig = {
   apiKey: "AIzaSyCZIDtUteM2MiESDJd35gaKPHX_Ht1zL6s",
   authDomain: "projectchat01-d16bc.firebaseapp.com",
   databaseURL: "https://projectchat01-d16bc-default-rtdb.firebaseio.com"
 };
-
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
 let user="", role="", kelas="", currentMapel="";
 
-// MODE
 function modeChange(){
-  let mode = modeSelect.value;
-
-  passInput.style.display = (mode=="guru") ? "block":"none";
-  kelasBox.style.display = (mode=="guru") ? "none":"block";
+  passInput.style.display = (modeSelect.value=="guru") ? "block":"none";
+  kelasBox.style.display = (modeSelect.value=="guru") ? "none":"block";
 }
 
-// LOGIN
 function handleLogin(){
   user = namaInput.value.trim();
   role = modeSelect.value;
-
   if(user==="") return alert("Isi nama!");
-
   if(role==="guru"){
-    if(passInput.value!=="ADMIN123"){
-      return alert("Password salah!");
-    }
+    if(passInput.value!=="ADMIN123") return alert("Password salah!");
     kelas="-";
-  } else {
-    kelas = kelasSelect.value;
-  }
+  } else kelas = kelasSelect.value;
 
   loginBox.style.display="none";
   menuBox.style.display="block";
@@ -109,124 +89,150 @@ function handleLogin(){
         👨‍🏫 ${user}
         <button onclick="buatMapel()">➕ Buat Mapel</button>
         <button onclick="kelolaMapel()">🛠️ Kelola Mapel</button>
-        <button onclick="lihatHasil()">📊 Lihat Hasil</button>
+        <button onclick="lihatHasil()">📊 Hasil</button>
       </div>
     `;
-  } else {
-    menuBox.innerHTML=`
-      <div class="card">
-        👨‍🎓 ${user}<br>
-        Kelas: ${kelas}
-      </div>
-    `;
-    loadMapel();
-  }
+  } else loadMapel();
 }
 
-// ================= GURU =================
+// ======= GURU =======
+
 function buatMapel(){
   contentBox.innerHTML=`
     <div class="card">
+      <h3>Buat Mapel</h3>
       <input id="mapelInput" placeholder="Nama Mapel">
       <button onclick="simpanMapel()">Lanjut</button>
+      <button onclick="kembaliMenu()">⬅️ Kembali</button>
     </div>
   `;
 }
 
 function simpanMapel(){
+  let nama = mapelInput.value;
+  if(nama==="") return alert("Isi mapel!");
   let ref=db.ref("ulangan/mapel").push();
-  ref.set({nama:mapelInput.value});
-  currentMapel=ref.key;
-  tambahSoal();
+  ref.set({nama:nama});
+  halamanTambahSoal(ref.key);
+}
+
+// Fungsi tambah soal, edit soal, dan load soal lama
+function halamanTambahSoal(idMapel){
+  currentMapel = idMapel;
+  db.ref("ulangan/mapel/"+idMapel+"/soal").once("value", snap=>{
+    let html="<h3>Tambah / Edit Soal</h3><div id='soalContainer'></div>";
+    html+=`<button onclick="tambahSoal()">➕ Tambah Soal Baru</button>
+           <button onclick="simpanSoal()">💾 Simpan Semua</button>
+           <button onclick="kelolaMapel()">⬅️ Kembali</button>`;
+    contentBox.innerHTML=html;
+
+    let soalContainer = document.getElementById("soalContainer");
+    snap.forEach(s=>{
+      let d = s.val();
+      let div=document.createElement("div");
+      div.className="card soalCard";
+      div.innerHTML=`
+        <select class="tipe" onchange="ubahTipe(this)">
+          <option value="pg" ${d.tipe=="pg"?"selected":""}>Pilihan Ganda</option>
+          <option value="isian" ${d.tipe=="isian"?"selected":""}>Isian</option>
+        </select>
+        <input class="soal" value="${d.soal}" placeholder="Soal">
+        <div class="pgBox" style="display:${d.tipe=="pg"?"block":"none"};">
+          <input class="a" value="${d.a||''}" placeholder="A">
+          <input class="b" value="${d.b||''}" placeholder="B">
+          <input class="c" value="${d.c||''}" placeholder="C">
+          <input class="d" value="${d.d||''}" placeholder="D">
+          <select class="jawaban">
+            <option ${d.benar=="A"?"selected":""}>A</option>
+            <option ${d.benar=="B"?"selected":""}>B</option>
+            <option ${d.benar=="C"?"selected":""}>C</option>
+            <option ${d.benar=="D"?"selected":""}>D</option>
+          </select>
+        </div>
+        <div class="isianBox" style="display:${d.tipe=="isian"?"block":"none"};">
+          <input class="jawabanIsian" value="${d.benar||''}" placeholder="Jawaban benar (pisah koma)">
+        </div>
+      `;
+      soalContainer.appendChild(div);
+    });
+  });
 }
 
 function tambahSoal(){
-  contentBox.innerHTML+=`
-    <div class="card soalCard">
-      <input class="soal" placeholder="Soal">
+  let div=document.createElement("div");
+  div.className="card soalCard";
+  div.innerHTML=`
+    <select class="tipe" onchange="ubahTipe(this)">
+      <option value="pg">Pilihan Ganda</option>
+      <option value="isian">Isian</option>
+    </select>
+    <input class="soal" placeholder="Soal">
+    <div class="pgBox">
       <input class="a" placeholder="A">
       <input class="b" placeholder="B">
       <input class="c" placeholder="C">
       <input class="d" placeholder="D">
       <select class="jawaban">
-        <option>A</option><option>B</option>
-        <option>C</option><option>D</option>
+        <option>A</option><option>B</option><option>C</option><option>D</option>
       </select>
     </div>
-    <button onclick="tambahSoal()">+ Soal</button>
-    <button onclick="simpanSoal()">Simpan</button>
+    <div class="isianBox" style="display:none;">
+      <input class="jawabanIsian" placeholder="Jawaban benar (pisah koma)">
+    </div>
   `;
+  document.getElementById("soalContainer").appendChild(div);
+}
+
+function ubahTipe(el){
+  let card = el.parentElement;
+  let tipe = el.value;
+  card.querySelector(".pgBox").style.display = (tipe=="pg") ? "block":"none";
+  card.querySelector(".isianBox").style.display = (tipe=="isian") ? "block":"none";
 }
 
 function simpanSoal(){
-  document.querySelectorAll(".soalCard").forEach(c=>{
-    let data={
-      soal:c.querySelector(".soal").value,
-      a:c.querySelector(".a").value,
-      b:c.querySelector(".b").value,
-      c:c.querySelector(".c").value,
-      d:c.querySelector(".d").value,
-      benar:c.querySelector(".jawaban").value
-    };
-    if(data.soal){
-      db.ref("ulangan/mapel/"+currentMapel+"/soal").push(data);
+  let cards=document.querySelectorAll(".soalCard");
+  if(cards.length==0) return alert("Tambahkan soal!");
+  cards.forEach(c=>{
+    let tipe = c.querySelector(".tipe").value;
+    let data={soal:c.querySelector(".soal").value, tipe:tipe};
+    if(tipe=="pg"){
+      data.a=c.querySelector(".a").value;
+      data.b=c.querySelector(".b").value;
+      data.c=c.querySelector(".c").value;
+      data.d=c.querySelector(".d").value;
+      data.benar=c.querySelector(".jawaban").value;
+    } else {
+      data.benar=c.querySelector(".jawabanIsian").value.toLowerCase().trim();
     }
+    if(data.soal) db.ref("ulangan/mapel/"+currentMapel+"/soal").push(data);
   });
   alert("Soal tersimpan!");
 }
 
+// Kelola mapel
 function kelolaMapel(){
   db.ref("ulangan/mapel").once("value", snap=>{
     let html="<h3>Kelola Mapel</h3>";
     snap.forEach(s=>{
       html+=`
         <div class="card">
-          ${s.val().nama}
-          <button onclick="lihatSoalGuru('${s.key}','${s.val().nama}')">Lihat Soal</button>
+          <b>${s.val().nama}</b><br><br>
+          <button onclick="halamanTambahSoal('${s.key}')">📝 Lihat / Tambah Soal</button>
           <button onclick="hapusMapel('${s.key}')">🗑️ Hapus Mapel</button>
         </div>
       `;
     });
+    html+=`<button onclick="kembaliMenu()">⬅️ Kembali</button>`;
     contentBox.innerHTML=html;
   });
 }
 
-function lihatSoalGuru(id,nama){
-  db.ref("ulangan/mapel/"+id+"/soal").once("value", snap=>{
-    let html="<h3>"+nama+"</h3>";
-    snap.forEach(s=>{
-      let d=s.val();
-      html+=`
-        <div class="card">
-          ${d.soal}<br>
-          A. ${d.a}<br>
-          B. ${d.b}<br>
-          C. ${d.c}<br>
-          D. ${d.d}<br>
-          Jawaban: ${d.benar}<br>
-          <button onclick="hapusSoal('${id}','${s.key}')">❌ Hapus Soal</button>
-        </div>
-      `;
-    });
-    contentBox.innerHTML=html;
-  });
-}
+function hapusMapel(id){if(confirm("Hapus mapel?")){db.ref("ulangan/mapel/"+id).remove();kelolaMapel();}}
+function kembaliMenu(){handleLogin();}
 
-function hapusMapel(id){
-  if(confirm("Hapus mapel?")){
-    db.ref("ulangan/mapel/"+id).remove();
-    kelolaMapel();
-  }
-}
+// ======= MURID =======
 
-function hapusSoal(idMapel,idSoal){
-  if(confirm("Hapus soal?")){
-    db.ref("ulangan/mapel/"+idMapel+"/soal/"+idSoal).remove();
-    lihatSoalGuru(idMapel,"");
-  }
-}
-
-// ================= MURID =================
 function loadMapel(){
   db.ref("ulangan/mapel").on("value", snap=>{
     let html="<h3>Pilih Mapel</h3>";
@@ -246,53 +252,48 @@ function mulaiSoal(id,namaMapel){
   currentMapel=id;
   db.ref("ulangan/mapel/"+id+"/soal").once("value", snap=>{
     let html="<h3>"+namaMapel+"</h3>";
-    let i=0;
+    let i=0,total=0;
     snap.forEach(s=>{
       let d=s.val();
-      html+=`
-        <div class="card">
-          ${d.soal}
+      html+=`<div class="card">${i+1}. ${d.soal}`;
+      if(d.tipe=="pg"){
+        html+=`
           <div class="option"><input type="radio" name="q${i}" value="A"> ${d.a}</div>
           <div class="option"><input type="radio" name="q${i}" value="B"> ${d.b}</div>
           <div class="option"><input type="radio" name="q${i}" value="C"> ${d.c}</div>
           <div class="option"><input type="radio" name="q${i}" value="D"> ${d.d}</div>
-        </div>
-      `;
-      i++;
+        `;
+      } else html+=`<input type="text" id="q${i}" placeholder="Jawaban kamu">`;
+      html+=`</div>`; i++; total++;
     });
-    html+=`<button onclick="kirimJawaban('${namaMapel}')">Selesai</button>`;
+    html+=`<button onclick="kirimJawaban('${namaMapel}',${total})">Selesai</button>`;
     contentBox.innerHTML=html;
   });
 }
 
-function kirimJawaban(namaMapel){
+function kirimJawaban(namaMapel,total){
   db.ref("ulangan/mapel/"+currentMapel+"/soal").once("value", snap=>{
-    let i=0, benar=0, total=0, jawaban=[];
+    let i=0, benar=0;
     snap.forEach(s=>{
-      let kunci=s.val().benar;
-      let pilih=document.querySelector(`input[name=q${i}]:checked`);
-      let j=pilih?pilih.value:"-";
-      jawaban.push(j);
-      if(j==kunci) benar++;
-      total++;
+      let d=s.val();
+      if(d.tipe=="pg"){
+        let pilih=document.querySelector(`input[name=q${i}]:checked`);
+        if(pilih && pilih.value==d.benar) benar++;
+      } else {
+        let isi=document.getElementById("q"+i).value.toLowerCase().trim();
+        let kunci=d.benar.toLowerCase().trim();
+        let kunciArr = kunci.split(",").map(k=>k.trim());
+        if(kunciArr.includes(isi)) benar++;
+      }
       i++;
     });
-
     let nilai=Math.round((benar/total)*100);
-
-    db.ref("ulangan/hasil").push({
-      nama:user,
-      kelas:kelas,
-      mapel:namaMapel,
-      nilai:nilai,
-      jawaban:jawaban
-    });
-
-    contentBox.innerHTML=`<div class="card"><h2>Nilai: ${nilai}</h2></div>`;
+    db.ref("ulangan/hasil").push({nama:user,kelas:kelas,mapel:namaMapel,nilai:nilai});
+    contentBox.innerHTML=`<div class="card"><h2>Nilai: ${nilai}</h2><p>Benar: ${benar}/${total}</p></div>`;
   });
 }
 
-// ================= HASIL =================
+// ======= HASIL =======
 function lihatHasil(){
   db.ref("ulangan/mapel").once("value", snap=>{
     let html="<h3>Pilih Mapel</h3>";
@@ -304,6 +305,7 @@ function lihatHasil(){
         </div>
       `;
     });
+    html+=`<button onclick="kembaliMenu()">⬅️ Kembali</button>`;
     contentBox.innerHTML=html;
   });
 }
@@ -314,19 +316,13 @@ function tampilHasilMapel(namaMapel){
     snap.forEach(s=>{
       let d=s.val();
       if(d.mapel===namaMapel){
-        html+=`
-          <div class="card">
-            <b>${d.nama}</b> (${d.kelas})<br>
-            Nilai: ${d.nilai}<br>
-            Jawaban: ${d.jawaban.join(", ")}
-          </div>
-        `;
+        html+=`<div class="card"><b>${d.nama}</b> (${d.kelas})<br>Nilai: ${d.nilai}</div>`;
       }
     });
+    html+=`<button onclick="kembaliMenu()">⬅️ Kembali</button>`;
     contentBox.innerHTML=html;
   });
 }
 </script>
-
 </body>
 </html>
