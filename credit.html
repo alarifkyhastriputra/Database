@@ -1,51 +1,131 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Special Thanks & Credits</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: linear-gradient(135deg, #1e1e2f, #2c2c54);
-            color: #ffffff;
-            margin: 0;
-            padding: 0;
-        }
-        .container {
-            max-width: 900px;
-            margin: auto;
-            padding: 30px;
-        }
-        h1 {
-            text-align: center;
-            color: #ffd369;
-        }
-        h2 {
-            color: #00adb5;
-            margin-top: 25px;
-        }
-        p {
-            line-height: 1.6;
-        }
-        .box {
-            background: rgba(255, 255, 255, 0.05);
-            padding: 15px;
-            border-radius: 10px;
-            margin-top: 10px;
-        }
-        .highlight {
-            color: #ffd369;
-            font-weight: bold;
-        }
-        footer {
-            text-align: center;
-            margin-top: 40px;
-            font-size: 14px;
-            opacity: 0.7;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Special Thanks & Credits</title>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:'Poppins', sans-serif;
+}
+
+body{
+    background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+    color:#fff;
+    overflow-x:hidden;
+}
+
+/* Glow background effect */
+body::before{
+    content:"";
+    position:fixed;
+    width:500px;
+    height:500px;
+    background: radial-gradient(circle, #00adb5, transparent);
+    top:-100px;
+    left:-100px;
+    filter:blur(120px);
+    z-index:-1;
+}
+
+body::after{
+    content:"";
+    position:fixed;
+    width:400px;
+    height:400px;
+    background: radial-gradient(circle, #ffd369, transparent);
+    bottom:-100px;
+    right:-100px;
+    filter:blur(120px);
+    z-index:-1;
+}
+
+.container{
+    max-width:900px;
+    margin:auto;
+    padding:30px;
+}
+
+h1{
+    text-align:center;
+    font-size:32px;
+    color:#ffd369;
+    margin-bottom:20px;
+    text-shadow:0 0 10px rgba(255,211,105,0.6);
+}
+
+h2{
+    margin-top:30px;
+    color:#00adb5;
+    font-weight:600;
+}
+
+p{
+    line-height:1.7;
+}
+
+/* Glass box */
+.box{
+    background: rgba(255,255,255,0.05);
+    backdrop-filter: blur(12px);
+    border:1px solid rgba(255,255,255,0.1);
+    padding:18px;
+    border-radius:15px;
+    margin-top:12px;
+    transition:0.3s;
+}
+
+.box:hover{
+    transform: translateY(-5px) scale(1.01);
+    box-shadow:0 10px 25px rgba(0,0,0,0.3);
+}
+
+.highlight{
+    color:#ffd369;
+    font-weight:600;
+    text-shadow:0 0 8px rgba(255,211,105,0.5);
+}
+
+ul{
+    margin-left:20px;
+}
+
+li{
+    margin-top:5px;
+}
+
+/* Footer */
+footer{
+    text-align:center;
+    margin-top:50px;
+    font-size:13px;
+    opacity:0.6;
+}
+
+/* Animation */
+.container{
+    animation:fadeIn 1s ease;
+}
+
+@keyframes fadeIn{
+    from{
+        opacity:0;
+        transform:translateY(20px);
+    }
+    to{
+        opacity:1;
+        transform:translateY(0);
+    }
+}
+</style>
 </head>
+
 <body>
 
 <div class="container">
@@ -69,7 +149,6 @@
 
     <h2>🤝 Support System</h2>
     <div class="box">
-        <p>Ucapan terima kasih juga saya sampaikan kepada:</p>
         <ul>
             <li>Teman-teman Discord yang selalu memberikan dukungan, ide, dan semangat</li>
             <li>Teman-teman Informatika yang telah membantu dalam proses belajar, diskusi, dan pengembangan</li>
@@ -78,48 +157,43 @@
 
     <h2>🏫 Pendidikan & Bimbingan</h2>
     <div class="box">
-        <p>Saya juga sangat berterima kasih kepada:</p>
         <ul>
-            <li>SMA Negeri 1 Bengkayang sebagai tempat saya belajar dan berkembang</li>
-            <li>Pak Aji yang telah memberikan bimbingan, ilmu, serta arahan selama proses pembuatan proyek ini</li>
+            <li>SMA Negeri 1 Bengkayang sebagai tempat belajar dan berkembang</li>
+            <li>Pak Aji yang telah memberikan bimbingan dan arahan</li>
         </ul>
     </div>
 
     <h2>📍 Lokasi & Identitas</h2>
     <div class="box">
         <p>
-            Proyek ini lahir dan berkembang di:<br>
             <span class="highlight">Bengkayang, Indonesia</span><br>
-            Yang menjadi sumber semangat dan identitas dalam saya berkarya.
+            Menjadi sumber semangat dan identitas dalam berkarya.
         </p>
     </div>
 
     <h2>🇮🇩 Inspirasi</h2>
     <div class="box">
         <p>
-            Sebagai bentuk apresiasi terhadap tokoh bangsa:<br>
             <span class="highlight">Prabowo Subianto</span><br>
-            Yang menjadi salah satu inspirasi dalam semangat saya untuk terus berkembang dan berkarya bagi negeri.
+            Menjadi salah satu inspirasi dalam semangat untuk terus berkembang.
         </p>
     </div>
 
     <h2>🚀 Pengembangan ke Depan</h2>
     <div class="box">
         <p>
-            Saya akan terus mengembangkan proyek ini dengan menambahkan banyak fitur baru ke depannya, 
-            meningkatkan kualitas, serta memberikan pengalaman yang lebih baik bagi pengguna. 
-            Dukungan dan masukan dari berbagai pihak akan sangat berarti dalam proses pengembangan ini.
+            Proyek ini akan terus dikembangkan dengan fitur baru, peningkatan kualitas, 
+            dan pengalaman pengguna yang lebih baik.
         </p>
     </div>
 
     <h2>💬 Penutup</h2>
     <div class="box">
         <p>
-            Akhir kata, saya menyadari bahwa proyek ini masih jauh dari sempurna. 
-            Namun, saya berharap karya ini dapat memberikan manfaat, inspirasi, 
-            dan dampak positif bagi banyak orang.
+            Proyek ini masih jauh dari sempurna, namun diharapkan dapat memberikan manfaat 
+            dan inspirasi bagi banyak orang.
         </p>
-        <p><b>Terima kasih atas segala dukungan dan kepercayaan yang telah diberikan.</b></p>
+        <p><b>Terima kasih atas dukungannya 🙏</b></p>
     </div>
 
     <footer>
@@ -128,4 +202,4 @@
 </div>
 
 </body>
-  </html>
+</html>
