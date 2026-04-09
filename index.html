@@ -32,9 +32,9 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:sans-serif;}
   padding:16px;
   border-radius:12px;
   margin-bottom:10px;
-  cursor:pointer;
   box-shadow:0 4px 10px rgba(0,0,0,0.1);
 }
+.card button{position:relative;z-index:2;}
 
 input,select,button{
   width:100%;padding:12px;margin-top:8px;border-radius:10px;border:1px solid #ddd;
@@ -43,7 +43,7 @@ button{background:var(--primary);color:#fff;border:none;cursor:pointer;}
 
 .option{background:#eef;padding:10px;margin-top:5px;border-radius:8px;}
 
-/* FIX FLOATING POPUP */
+/* OVERLAY */
 #overlay{
   display:none;
   position:fixed;
@@ -51,17 +51,32 @@ button{background:var(--primary);color:#fff;border:none;cursor:pointer;}
   width:100%;
   height:100%;
   background:rgba(0,0,0,0.5);
-
-  display:flex;
   align-items:center;
   justify-content:center;
 }
 
-#popupGuru{
-  display:none;
+/* POPUP */
+.popup{
   width:90%;
   max-width:400px;
+  display:none;
 }
+
+/* TOAST */
+#toast{
+  position:fixed;
+  bottom:30px;
+  left:50%;
+  transform:translateX(-50%);
+  background:#333;
+  color:#fff;
+  padding:12px 20px;
+  border-radius:8px;
+  opacity:0;
+  transition:0.3s;
+  z-index:9999;
+}
+#toast.show{opacity:1;bottom:50px;}
 </style>
 </head>
 
@@ -73,15 +88,22 @@ HERCU OTG
 <span class="lock" onclick="bukaGuru()">🔒</span>
 </div>
 
-<!-- POPUP FIX -->
-<div id="overlay" onclick="tutupGuru()">
-  <div id="popupGuru" class="card" onclick="event.stopPropagation()">
+<!-- OVERLAY -->
+<div id="overlay" onclick="tutupPopup()">
+
+  <div id="popupGuru" class="card popup" onclick="event.stopPropagation()">
     <h3>Login Guru</h3>
     <input id="guruNama" placeholder="Nama">
     <input id="guruPass" type="password" placeholder="Password">
     <button onclick="loginGuru()">Masuk</button>
-    <button onclick="tutupGuru()">Batal</button>
   </div>
+
+  <div id="popupConfirm" class="card popup" onclick="event.stopPropagation()">
+    <h3 id="confirmText">Yakin?</h3>
+    <button onclick="yesConfirm()">Ya</button>
+    <button onclick="tutupPopup()">Batal</button>
+  </div>
+
 </div>
 
 <div class="container">
@@ -106,6 +128,8 @@ HERCU OTG
 
 </div>
 
+<div id="toast"></div>
+
 <script>
 const firebaseConfig={
   apiKey:"AIzaSy...",
@@ -115,37 +139,56 @@ firebase.initializeApp(firebaseConfig);
 const db=firebase.database();
 
 let user="",kelas="",role="",currentMapel="",soalRandom=[],sudahKirim=false;
+let confirmAction=null;
 
-// DARK MODE
+/* TOAST */
+function showToast(msg){
+  toast.innerText=msg;
+  toast.classList.add("show");
+  setTimeout(()=>toast.classList.remove("show"),2000);
+}
+
+/* POPUP */
+function bukaPopup(id){
+  overlay.style.display="flex";
+  document.querySelectorAll(".popup").forEach(p=>p.style.display="none");
+  document.getElementById(id).style.display="block";
+}
+function tutupPopup(){overlay.style.display="none";}
+
+/* CONFIRM */
+function showConfirm(text,action){
+  confirmText.innerText=text;
+  confirmAction=action;
+  bukaPopup("popupConfirm");
+}
+function yesConfirm(){
+  if(confirmAction) confirmAction();
+  tutupPopup();
+}
+
+/* DARK MODE */
 function toggleMode(){document.body.classList.toggle("dark");}
 
-// LOGIN
+/* LOGIN */
 function login(){
   user=namaInput.value.trim();
   kelas=kelasSelect.value;
   role="murid";
-  if(!user)return alert("Isi nama!");
+  if(!user)return showToast("Isi nama!");
   loginBox.style.display="none";
   loadMapel();
 }
 
-// POPUP FIX
-function bukaGuru(){
-  overlay.style.display="flex";
-  popupGuru.style.display="block";
-}
-function tutupGuru(){
-  overlay.style.display="none";
-  popupGuru.style.display="none";
-}
+/* GURU */
+function bukaGuru(){bukaPopup("popupGuru");}
 
-// GURU LOGIN
 function loginGuru(){
-  if(guruPass.value!=="ADMIN123")return alert("Password salah");
+  if(guruPass.value!=="ADMIN123")return showToast("Password salah");
   user=guruNama.value;
   role="guru";
   loginBox.style.display="none";
-  tutupGuru();
+  tutupPopup();
 
   menuBox.innerHTML=`
   <div class="card">
@@ -156,7 +199,7 @@ function loginGuru(){
   </div>`;
 }
 
-// MAPEL
+/* MAPEL */
 function buatMapel(){
   contentBox.innerHTML=`
   <div class="card">
@@ -167,8 +210,11 @@ function buatMapel(){
 
 function simpanMapel(){
   let nama=mapelInput.value.trim();
-  if(!nama)return alert("Isi nama!");
-  db.ref("ulangan/mapel").push({nama:nama,lock:false}).then(()=>kelolaMapel());
+  if(!nama)return showToast("Isi nama!");
+  db.ref("ulangan/mapel").push({nama:nama,lock:false}).then(()=>{
+    showToast("Tersimpan!");
+    kelolaMapel();
+  });
 }
 
 function kelolaMapel(){
@@ -180,7 +226,7 @@ function kelolaMapel(){
       html+=`
       <div class="card">
       <b>${d.nama}</b><br>${d.lock?"🔒":"🔓"}
-      <button onclick="event.stopPropagation();halamanSoal('${id}')">Kelola Soal</button>
+      <button onclick="event.stopPropagation();halamanSoal('${id}')">Soal</button>
       <button onclick="event.stopPropagation();toggleLock('${id}',${d.lock})">Lock</button>
       <button onclick="event.stopPropagation();hapusMapel('${id}','${d.nama}')">Hapus</button>
       </div>`;
@@ -194,20 +240,19 @@ function toggleLock(id,lock){
 }
 
 function hapusMapel(id,nama){
-  if(confirm("Hapus mapel + hasil?")){
+  showConfirm("Hapus mapel & hasil?",()=>{
     db.ref("ulangan/mapel/"+id).remove();
     db.ref("ulangan/hasil/"+nama).remove();
+    showToast("Dihapus");
     kelolaMapel();
-  }
+  });
 }
 
-// SOAL
+/* SOAL */
 function halamanSoal(id){
   currentMapel=id;
-
   db.ref("ulangan/mapel/"+id+"/soal").once("value",snap=>{
     let data=snap.val();
-
     let html="<div id='soalContainer'></div>";
     html+=`<button onclick="tambahSoal()">➕ Tambah</button>
            <button onclick="simpanSoal()">💾 Simpan</button>
@@ -227,9 +272,7 @@ function halamanSoal(id){
         <option value="pg" ${d.tipe=="pg"?"selected":""}>PG</option>
         <option value="isian" ${d.tipe=="isian"?"selected":""}>Isian</option>
       </select>
-
       <input class="soal" value="${d.soal||""}">
-
       <div class="pgBox" style="display:${d.tipe=="pg"?"block":"none"}">
         <input class="a" value="${d.a||""}">
         <input class="b" value="${d.b||""}">
@@ -242,14 +285,19 @@ function halamanSoal(id){
           <option ${d.benar=="D"?"selected":""}>D</option>
         </select>
       </div>
-
       <div class="isianBox" style="display:${d.tipe=="isian"?"block":"none"}">
         <input class="jawabanIsian" value="${d.benar||""}">
       </div>
-
-      <button onclick="hapusSoal('${key}')">🗑️</button>`;
+      <button onclick="event.stopPropagation();hapusSoal('${key}')">🗑️</button>`;
       c.appendChild(div);
     }
+  });
+}
+
+function hapusSoal(id){
+  showConfirm("Hapus soal ini?",()=>{
+    db.ref("ulangan/mapel/"+currentMapel+"/soal/"+id).remove()
+    .then(()=>halamanSoal(currentMapel));
   });
 }
 
@@ -295,11 +343,11 @@ function simpanSoal(){
 
       db.ref("ulangan/mapel/"+currentMapel+"/soal").push(data);
     });
-    alert("Tersimpan!");
+    showToast("Tersimpan!");
   });
 }
 
-// MURID
+/* MURID */
 function loadMapel(){
   db.ref("ulangan/mapel").once("value",snap=>{
     let data=snap.val(),html="";
@@ -307,7 +355,7 @@ function loadMapel(){
     else for(let id in data){
       let d=data[id];
       html+=`<div class="card">${d.nama}
-      ${!d.lock?`<button onclick="mulaiSoal('${id}','${d.nama}')">Mulai</button>`:"🔒"}</div>`;
+      ${!d.lock?`<button onclick="event.stopPropagation();mulaiSoal('${id}','${d.nama}')">Mulai</button>`:"🔒"}</div>`;
     }
     contentBox.innerHTML=html;
   });
@@ -376,7 +424,59 @@ function kirim(mapel,total){
   contentBox.innerHTML=`<div class="card"><h2>Nilai: ${nilai}</h2></div>`;
 }
 
-// ANTI CHEAT
+/* HASIL */
+function lihatHasil(){
+  db.ref("ulangan/hasil").once("value",snap=>{
+    let data=snap.val();
+    let html="<button onclick='hapusSemuaHasil()'>🗑️ Hapus Semua</button>";
+
+    if(!data){
+      html+="<div class='card'>Belum ada hasil</div>";
+    }else{
+      for(let mapel in data){
+        let jumlah=Object.keys(data[mapel]).length;
+        html+=`<div class="card" onclick="lihatDetailMapel('${mapel}')">
+        <b>${mapel}</b><br>${jumlah} murid</div>`;
+      }
+    }
+
+    contentBox.innerHTML=html;
+  });
+}
+
+function lihatDetailMapel(mapel){
+  db.ref("ulangan/hasil/"+mapel).once("value",snap=>{
+    let data=snap.val();
+    let html=`
+    <button onclick="lihatHasil()">⬅️</button>
+    <h3>${mapel}</h3>
+    `;
+
+    for(let id in data){
+      let d=data[id];
+      html+=`<div class="card">
+      ${d.nama} (${d.kelas}) - ${d.nilai}
+      <button onclick="event.stopPropagation();hapusHasil('${mapel}','${id}')">🗑️</button>
+      </div>`;
+    }
+
+    contentBox.innerHTML=html;
+  });
+}
+
+function hapusHasil(mapel,id){
+  showConfirm("Hapus hasil ini?",()=>{
+    db.ref("ulangan/hasil/"+mapel+"/"+id).remove().then(()=>lihatDetailMapel(mapel));
+  });
+}
+
+function hapusSemuaHasil(){
+  showConfirm("Hapus semua hasil?",()=>{
+    db.ref("ulangan/hasil").remove().then(()=>lihatHasil());
+  });
+}
+
+/* ANTI CHEAT */
 function autoSubmit(){
   if(!sudahKirim && soalRandom.length>0){
     sudahKirim=true;
