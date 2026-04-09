@@ -9,320 +9,382 @@
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
 <style>
-body {margin:0;font-family:Arial;background:#eef2f7;}
-.header {background:#4f46e5;color:white;padding:15px;text-align:center;font-weight:bold;}
-.container {padding:12px;max-width:500px;margin:auto;}
-.card {background:white;padding:15px;margin-bottom:12px;border-radius:12px;}
-input, select {width:100%;padding:12px;margin-top:8px;border-radius:10px;border:1px solid #ccc;}
-button {width:100%;padding:13px;margin-top:10px;border:none;border-radius:10px;background:#4f46e5;color:white;}
-.option {background:#f1f5f9;padding:10px;border-radius:8px;margin-top:6px;}
+*{box-sizing:border-box;font-family:'Segoe UI',sans-serif;}
+body{margin:0;background:linear-gradient(135deg,#667eea,#764ba2);}
+
+/* HEADER */
+.header{
+  padding:18px;
+  text-align:center;
+  font-size:20px;
+  color:white;
+  position:relative;
+  font-weight:bold;
+}
+
+.lock{
+  position:absolute;
+  right:15px;
+  top:15px;
+  cursor:pointer;
+  font-size:22px;
+}
+
+/* CONTAINER */
+.container{max-width:500px;margin:auto;padding:12px;}
+
+/* CARD */
+.card{
+  background:white;
+  border-radius:18px;
+  padding:16px;
+  margin-bottom:12px;
+  box-shadow:0 8px 20px rgba(0,0,0,0.1);
+  animation:fade .3s;
+}
+
+/* INPUT */
+input,select{
+  width:100%;
+  padding:12px;
+  margin-top:8px;
+  border-radius:12px;
+  border:1px solid #ddd;
+}
+
+/* BUTTON */
+button{
+  width:100%;
+  padding:12px;
+  margin-top:10px;
+  border:none;
+  border-radius:12px;
+  background:linear-gradient(135deg,#667eea,#764ba2);
+  color:white;
+  font-weight:bold;
+}
+
+/* OPTION */
+.option{
+  background:#eef2ff;
+  padding:10px;
+  margin-top:6px;
+  border-radius:10px;
+}
+
+/* POPUP */
+#overlay{display:none;position:fixed;width:100%;height:100%;background:rgba(0,0,0,0.5);}
+#popupGuru{
+  display:none;
+  position:fixed;
+  top:50%;left:50%;
+  transform:translate(-50%,-50%);
+  width:90%;max-width:400px;
+}
+
+/* ANIM */
+@keyframes fade{
+  from{opacity:0;transform:translateY(10px);}
+  to{opacity:1;}
+}
 </style>
 </head>
 
 <body>
 
-<div class="header">📘 HERCU OTG</div>
+<div class="header">
+📘 HERCU OTG
+<span class="lock" onclick="bukaLoginGuru()">🔒</span>
+</div>
+
+<div id="overlay" onclick="tutupLoginGuru()"></div>
+
+<div id="popupGuru" class="card">
+<h3>Login Guru</h3>
+<input id="guruNama" placeholder="Nama">
+<input id="guruPass" type="password" placeholder="Password">
+<button onclick="loginGuru()">Masuk</button>
+<button onclick="tutupLoginGuru()">Batal</button>
+</div>
 
 <div class="container">
 
 <div id="loginBox" class="card">
-  <input id="namaInput" placeholder="Nama">
-
-  <select id="modeSelect" onchange="modeChange()">
-    <option value="murid">Murid</option>
-    <option value="guru">Guru</option>
-  </select>
-
-  <div id="kelasBox">
-    <select id="kelasSelect">
-      <option value="10A">10 A</option><option value="10B">10 B</option>
-      <option value="10C">10 C</option><option value="10D">10 D</option>
-      <option value="10E">10 E</option><option value="10F">10 F</option>
-      <option value="10G">10 G</option>
-      <option value="11A">11 A</option><option value="11B">11 B</option>
-      <option value="11C">11 C</option><option value="11D">11 D</option>
-      <option value="11E">11 E</option><option value="11F">11 F</option>
-      <option value="11G">11 G</option>
-    </select>
-  </div>
-
-  <input id="passInput" placeholder="Password Guru" style="display:none;">
-  <button onclick="handleLogin()">Masuk</button>
+<input id="namaInput" placeholder="Nama Murid">
+<select id="kelasSelect">
+<option>10A</option><option>10B</option><option>10C</option>
+<option>10D</option><option>10E</option><option>10F</option><option>10G</option>
+<option>11A</option><option>11B</option><option>11C</option>
+<option>11D</option><option>11E</option><option>11F</option><option>11G</option>
+</select>
+<button onclick="loginMurid()">Masuk</button>
 </div>
 
-<div id="menuBox" style="display:none;"></div>
+<div id="menuBox"></div>
 <div id="contentBox"></div>
 
 </div>
 
 <script>
 const firebaseConfig = {
-  apiKey: "AIzaSyCZIDtUteM2MiESDJd35gaKPHX_Ht1zL6s",
-  authDomain: "projectchat01-d16bc.firebaseapp.com",
-  databaseURL: "https://projectchat01-d16bc-default-rtdb.firebaseio.com"
+  apiKey:"AIzaSyCZIDtUteM2MiESDJd35gaKPHX_Ht1zL6s",
+  databaseURL:"https://projectchat01-d16bc-default-rtdb.firebaseio.com"
 };
 firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
+const db=firebase.database();
 
-let user="", role="", kelas="", currentMapel="";
+let user="",role="",kelas="",currentMapel="";
+let soalRandom=[];
 
-function modeChange(){
-  passInput.style.display = (modeSelect.value=="guru") ? "block":"none";
-  kelasBox.style.display = (modeSelect.value=="guru") ? "none":"block";
-}
-
-function handleLogin(){
-  user = namaInput.value.trim();
-  role = modeSelect.value;
-  if(user==="") return alert("Isi nama!");
-  if(role==="guru"){
-    if(passInput.value!=="ADMIN123") return alert("Password salah!");
-    kelas="-";
-  } else kelas = kelasSelect.value;
-
+// LOGIN
+function loginMurid(){
+  user=namaInput.value.trim();
+  kelas=kelasSelect.value;
+  role="murid";
+  if(!user) return alert("Isi nama!");
   loginBox.style.display="none";
-  menuBox.style.display="block";
-
-  if(role==="guru"){
-    menuBox.innerHTML=`
-      <div class="card">
-        👨‍🏫 ${user}
-        <button onclick="buatMapel()">➕ Buat Mapel</button>
-        <button onclick="kelolaMapel()">🛠️ Kelola Mapel</button>
-        <button onclick="lihatHasil()">📊 Hasil</button>
-      </div>
-    `;
-  } else loadMapel();
+  loadMapel();
 }
 
-// ======= GURU =======
+// LOGIN GURU
+function bukaLoginGuru(){overlay.style.display="block";popupGuru.style.display="block";}
+function tutupLoginGuru(){overlay.style.display="none";popupGuru.style.display="none";}
 
+function loginGuru(){
+  if(guruPass.value!=="ADMIN123") return alert("Password salah");
+  user=guruNama.value;
+  role="guru";
+  loginBox.style.display="none";
+  overlay.style.display="none";
+  popupGuru.style.display="none";
+
+  menuBox.innerHTML=`
+  <div class="card">
+  👨‍🏫 ${user}
+  <button onclick="buatMapel()">➕ Buat Mapel</button>
+  <button onclick="kelolaMapel()">⚙️ Kelola</button>
+  <button onclick="lihatHasil()">📊 Hasil</button>
+  </div>`;
+}
+
+// MAPEL
 function buatMapel(){
   contentBox.innerHTML=`
-    <div class="card">
-      <h3>Buat Mapel</h3>
-      <input id="mapelInput" placeholder="Nama Mapel">
-      <button onclick="simpanMapel()">Lanjut</button>
-      <button onclick="kembaliMenu()">⬅️ Kembali</button>
-    </div>
-  `;
+  <div class="card">
+  <input id="mapelInput" placeholder="Nama Mapel">
+  <button onclick="simpanMapel()">Simpan</button>
+  </div>`;
 }
 
 function simpanMapel(){
-  let nama = mapelInput.value;
-  if(nama==="") return alert("Isi mapel!");
   let ref=db.ref("ulangan/mapel").push();
-  ref.set({nama:nama});
+  ref.set({nama:mapelInput.value,lock:false});
   halamanTambahSoal(ref.key);
 }
 
-// Fungsi tambah soal, edit soal, dan load soal lama
-function halamanTambahSoal(idMapel){
-  currentMapel = idMapel;
-  db.ref("ulangan/mapel/"+idMapel+"/soal").once("value", snap=>{
-    let html="<h3>Tambah / Edit Soal</h3><div id='soalContainer'></div>";
-    html+=`<button onclick="tambahSoal()">➕ Tambah Soal Baru</button>
-           <button onclick="simpanSoal()">💾 Simpan Semua</button>
-           <button onclick="kelolaMapel()">⬅️ Kembali</button>`;
+function toggleLock(id,lock){
+  db.ref("ulangan/mapel/"+id+"/lock").set(!lock);
+  kelolaMapel();
+}
+
+// KELOLA MAPEL + SOAL
+function kelolaMapel(){
+  db.ref("ulangan/mapel").once("value",snap=>{
+    let html="";
+    snap.forEach(s=>{
+      let d=s.val();
+      html+=`
+      <div class="card">
+      <b>${d.nama}</b><br>
+      ${d.lock?"🔒 Terkunci":"🔓 Terbuka"}
+      <button onclick="halamanTambahSoal('${s.key}')">Kelola Soal</button>
+      <button onclick="toggleLock('${s.key}',${d.lock})">Toggle Lock</button>
+      </div>`;
+    });
+    contentBox.innerHTML=html;
+  });
+}
+
+// LOAD + EDIT SOAL
+function halamanTambahSoal(id){
+  currentMapel=id;
+  db.ref("ulangan/mapel/"+id+"/soal").once("value",snap=>{
+    let html="<div id='soalContainer'></div>";
+    html+=`<button onclick="tambahSoal()">➕ Tambah</button>
+           <button onclick="simpanSoal()">💾 Simpan</button>`;
     contentBox.innerHTML=html;
 
-    let soalContainer = document.getElementById("soalContainer");
+    let c=document.getElementById("soalContainer");
     snap.forEach(s=>{
-      let d = s.val();
+      let d=s.val();
       let div=document.createElement("div");
       div.className="card soalCard";
       div.innerHTML=`
-        <select class="tipe" onchange="ubahTipe(this)">
-          <option value="pg" ${d.tipe=="pg"?"selected":""}>Pilihan Ganda</option>
-          <option value="isian" ${d.tipe=="isian"?"selected":""}>Isian</option>
+      <select class="tipe" onchange="ubahTipe(this)">
+        <option value="pg" ${d.tipe=="pg"?"selected":""}>PG</option>
+        <option value="isian" ${d.tipe=="isian"?"selected":""}>Isian</option>
+      </select>
+      <input class="soal" value="${d.soal}">
+      <div class="pgBox" style="display:${d.tipe=="pg"?"block":"none"};">
+        <input class="a" value="${d.a||""}">
+        <input class="b" value="${d.b||""}">
+        <input class="c" value="${d.c||""}">
+        <input class="d" value="${d.d||""}">
+        <select class="jawaban">
+          <option ${d.benar=="A"?"selected":""}>A</option>
+          <option ${d.benar=="B"?"selected":""}>B</option>
+          <option ${d.benar=="C"?"selected":""}>C</option>
+          <option ${d.benar=="D"?"selected":""}>D</option>
         </select>
-        <input class="soal" value="${d.soal}" placeholder="Soal">
-        <div class="pgBox" style="display:${d.tipe=="pg"?"block":"none"};">
-          <input class="a" value="${d.a||''}" placeholder="A">
-          <input class="b" value="${d.b||''}" placeholder="B">
-          <input class="c" value="${d.c||''}" placeholder="C">
-          <input class="d" value="${d.d||''}" placeholder="D">
-          <select class="jawaban">
-            <option ${d.benar=="A"?"selected":""}>A</option>
-            <option ${d.benar=="B"?"selected":""}>B</option>
-            <option ${d.benar=="C"?"selected":""}>C</option>
-            <option ${d.benar=="D"?"selected":""}>D</option>
-          </select>
-        </div>
-        <div class="isianBox" style="display:${d.tipe=="isian"?"block":"none"};">
-          <input class="jawabanIsian" value="${d.benar||''}" placeholder="Jawaban benar (pisah koma)">
-        </div>
-      `;
-      soalContainer.appendChild(div);
+      </div>
+      <div class="isianBox" style="display:${d.tipe=="isian"?"block":"none"};">
+        <input class="jawabanIsian" value="${d.benar||""}">
+      </div>
+      <button onclick="hapusSoal('${s.key}')">🗑️ Hapus</button>`;
+      c.appendChild(div);
     });
   });
+}
+
+function hapusSoal(id){
+  if(confirm("Hapus soal?")){
+    db.ref("ulangan/mapel/"+currentMapel+"/soal/"+id).remove();
+    halamanTambahSoal(currentMapel);
+  }
 }
 
 function tambahSoal(){
   let div=document.createElement("div");
   div.className="card soalCard";
-  div.innerHTML=`
-    <select class="tipe" onchange="ubahTipe(this)">
-      <option value="pg">Pilihan Ganda</option>
-      <option value="isian">Isian</option>
-    </select>
-    <input class="soal" placeholder="Soal">
-    <div class="pgBox">
-      <input class="a" placeholder="A">
-      <input class="b" placeholder="B">
-      <input class="c" placeholder="C">
-      <input class="d" placeholder="D">
-      <select class="jawaban">
-        <option>A</option><option>B</option><option>C</option><option>D</option>
-      </select>
-    </div>
-    <div class="isianBox" style="display:none;">
-      <input class="jawabanIsian" placeholder="Jawaban benar (pisah koma)">
-    </div>
-  `;
-  document.getElementById("soalContainer").appendChild(div);
+  div.innerHTML=`<select class="tipe" onchange="ubahTipe(this)">
+  <option value="pg">PG</option><option value="isian">Isian</option>
+  </select>
+  <input class="soal">
+  <div class="pgBox"><input class="a"><input class="b"><input class="c"><input class="d">
+  <select class="jawaban"><option>A</option><option>B</option><option>C</option><option>D</option></select></div>
+  <div class="isianBox" style="display:none;"><input class="jawabanIsian"></div>`;
+  soalContainer.appendChild(div);
 }
 
 function ubahTipe(el){
-  let card = el.parentElement;
-  let tipe = el.value;
-  card.querySelector(".pgBox").style.display = (tipe=="pg") ? "block":"none";
-  card.querySelector(".isianBox").style.display = (tipe=="isian") ? "block":"none";
+  let p=el.parentElement;
+  p.querySelector(".pgBox").style.display=(el.value=="pg")?"block":"none";
+  p.querySelector(".isianBox").style.display=(el.value=="isian")?"block":"none";
 }
 
 function simpanSoal(){
   let cards=document.querySelectorAll(".soalCard");
-  if(cards.length==0) return alert("Tambahkan soal!");
-  cards.forEach(c=>{
-    let tipe = c.querySelector(".tipe").value;
-    let data={soal:c.querySelector(".soal").value, tipe:tipe};
-    if(tipe=="pg"){
-      data.a=c.querySelector(".a").value;
-      data.b=c.querySelector(".b").value;
-      data.c=c.querySelector(".c").value;
-      data.d=c.querySelector(".d").value;
-      data.benar=c.querySelector(".jawaban").value;
-    } else {
-      data.benar=c.querySelector(".jawabanIsian").value.toLowerCase().trim();
-    }
-    if(data.soal) db.ref("ulangan/mapel/"+currentMapel+"/soal").push(data);
-  });
-  alert("Soal tersimpan!");
-}
-
-// Kelola mapel
-function kelolaMapel(){
-  db.ref("ulangan/mapel").once("value", snap=>{
-    let html="<h3>Kelola Mapel</h3>";
-    snap.forEach(s=>{
-      html+=`
-        <div class="card">
-          <b>${s.val().nama}</b><br><br>
-          <button onclick="halamanTambahSoal('${s.key}')">📝 Lihat / Tambah Soal</button>
-          <button onclick="hapusMapel('${s.key}')">🗑️ Hapus Mapel</button>
-        </div>
-      `;
+  db.ref("ulangan/mapel/"+currentMapel+"/soal").remove().then(()=>{
+    cards.forEach(c=>{
+      let tipe=c.querySelector(".tipe").value;
+      let data={soal:c.querySelector(".soal").value,tipe:tipe};
+      if(tipe=="pg"){
+        data.a=c.querySelector(".a").value;
+        data.b=c.querySelector(".b").value;
+        data.c=c.querySelector(".c").value;
+        data.d=c.querySelector(".d").value;
+        data.benar=c.querySelector(".jawaban").value;
+      } else {
+        data.benar=c.querySelector(".jawabanIsian").value.toLowerCase();
+      }
+      db.ref("ulangan/mapel/"+currentMapel+"/soal").push(data);
     });
-    html+=`<button onclick="kembaliMenu()">⬅️ Kembali</button>`;
-    contentBox.innerHTML=html;
+    alert("Tersimpan!");
   });
 }
 
-function hapusMapel(id){if(confirm("Hapus mapel?")){db.ref("ulangan/mapel/"+id).remove();kelolaMapel();}}
-function kembaliMenu(){handleLogin();}
-
-// ======= MURID =======
-
+// MURID LOAD MAPEL
 function loadMapel(){
-  db.ref("ulangan/mapel").on("value", snap=>{
-    let html="<h3>Pilih Mapel</h3>";
-    snap.forEach(s=>{
-      html+=`
-        <div class="card">
-          ${s.val().nama}
-          <button onclick="mulaiSoal('${s.key}','${s.val().nama}')">Mulai</button>
-        </div>
-      `;
-    });
-    contentBox.innerHTML=html;
-  });
-}
-
-function mulaiSoal(id,namaMapel){
-  currentMapel=id;
-  db.ref("ulangan/mapel/"+id+"/soal").once("value", snap=>{
-    let html="<h3>"+namaMapel+"</h3>";
-    let i=0,total=0;
+  db.ref("ulangan/mapel").on("value",snap=>{
+    let html="";
     snap.forEach(s=>{
       let d=s.val();
+      html+=`<div class="card">${d.nama}<br>
+      ${d.lock?"🔒 Dikunci":"🔓 Bisa"}
+      ${!d.lock?`<button onclick="mulaiSoal('${s.key}','${d.nama}')">Mulai</button>`:""}
+      </div>`;
+    });
+    contentBox.innerHTML=html;
+  });
+}
+
+// RANDOM SOAL
+function mulaiSoal(id,nama){
+  currentMapel=id;
+  db.ref("ulangan/mapel/"+id+"/soal").once("value",snap=>{
+    soalRandom=[];
+    snap.forEach(s=>soalRandom.push(s.val()));
+
+    soalRandom.sort(()=>Math.random()-0.5);
+
+    let html="<h3>"+nama+"</h3>";
+    soalRandom.forEach((d,i)=>{
       html+=`<div class="card">${i+1}. ${d.soal}`;
       if(d.tipe=="pg"){
-        html+=`
-          <div class="option"><input type="radio" name="q${i}" value="A"> ${d.a}</div>
-          <div class="option"><input type="radio" name="q${i}" value="B"> ${d.b}</div>
-          <div class="option"><input type="radio" name="q${i}" value="C"> ${d.c}</div>
-          <div class="option"><input type="radio" name="q${i}" value="D"> ${d.d}</div>
-        `;
-      } else html+=`<input type="text" id="q${i}" placeholder="Jawaban kamu">`;
-      html+=`</div>`; i++; total++;
-    });
-    html+=`<button onclick="kirimJawaban('${namaMapel}',${total})">Selesai</button>`;
-    contentBox.innerHTML=html;
-  });
-}
+        let opsi=[
+          {k:"A",t:d.a},{k:"B",t:d.b},
+          {k:"C",t:d.c},{k:"D",t:d.d}
+        ];
+        opsi.sort(()=>Math.random()-0.5);
+        d._opsi=opsi;
 
-function kirimJawaban(namaMapel,total){
-  db.ref("ulangan/mapel/"+currentMapel+"/soal").once("value", snap=>{
-    let i=0, benar=0;
-    snap.forEach(s=>{
-      let d=s.val();
-      if(d.tipe=="pg"){
-        let pilih=document.querySelector(`input[name=q${i}]:checked`);
-        if(pilih && pilih.value==d.benar) benar++;
+        opsi.forEach(o=>{
+          html+=`<div class="option">
+          <input type="radio" name="q${i}" value="${o.k}">${o.t}</div>`;
+        });
       } else {
-        let isi=document.getElementById("q"+i).value.toLowerCase().trim();
-        let kunci=d.benar.toLowerCase().trim();
-        let kunciArr = kunci.split(",").map(k=>k.trim());
-        if(kunciArr.includes(isi)) benar++;
+        html+=`<input id="q${i}">`;
       }
-      i++;
+      html+="</div>";
     });
-    let nilai=Math.round((benar/total)*100);
-    db.ref("ulangan/hasil").push({nama:user,kelas:kelas,mapel:namaMapel,nilai:nilai});
-    contentBox.innerHTML=`<div class="card"><h2>Nilai: ${nilai}</h2><p>Benar: ${benar}/${total}</p></div>`;
-  });
-}
 
-// ======= HASIL =======
-function lihatHasil(){
-  db.ref("ulangan/mapel").once("value", snap=>{
-    let html="<h3>Pilih Mapel</h3>";
-    snap.forEach(s=>{
-      html+=`
-        <div class="card">
-          ${s.val().nama}
-          <button onclick="tampilHasilMapel('${s.val().nama}')">Lihat</button>
-        </div>
-      `;
-    });
-    html+=`<button onclick="kembaliMenu()">⬅️ Kembali</button>`;
+    html+=`<button onclick="kirimJawabanRandom('${nama}',${soalRandom.length})">Selesai</button>`;
     contentBox.innerHTML=html;
   });
 }
 
-function tampilHasilMapel(namaMapel){
-  db.ref("ulangan/hasil").once("value", snap=>{
-    let html="<h3>Hasil "+namaMapel+"</h3>";
+// NILAI
+function kirimJawabanRandom(mapel,total){
+  let benar=0;
+  soalRandom.forEach((d,i)=>{
+    if(d.tipe=="pg"){
+      let p=document.querySelector(`input[name=q${i}]:checked`);
+      if(p && p.value==d.benar) benar++;
+    } else {
+      let isi=document.getElementById("q"+i).value.toLowerCase();
+      let arr=d.benar.split(",");
+      if(arr.includes(isi)) benar++;
+    }
+  });
+
+  let nilai=Math.round((benar/total)*100);
+  db.ref("ulangan/hasil").push({nama:user,kelas:kelas,mapel:mapel,nilai:nilai});
+
+  contentBox.innerHTML=`<div class="card"><h2>Nilai: ${nilai}</h2></div>`;
+}
+
+// HASIL
+function lihatHasil(){
+  db.ref("ulangan/hasil").once("value",snap=>{
+    let html="";
     snap.forEach(s=>{
       let d=s.val();
-      if(d.mapel===namaMapel){
-        html+=`<div class="card"><b>${d.nama}</b> (${d.kelas})<br>Nilai: ${d.nilai}</div>`;
-      }
+      html+=`<div class="card">${d.nama} (${d.kelas}) - ${d.nilai}</div>`;
     });
-    html+=`<button onclick="kembaliMenu()">⬅️ Kembali</button>`;
     contentBox.innerHTML=html;
   });
 }
+
+// ANTI CHEAT
+document.addEventListener("contextmenu",e=>e.preventDefault());
+document.addEventListener("copy",e=>e.preventDefault());
+document.addEventListener("visibilitychange",()=>{
+  if(document.hidden && role=="murid"){
+    alert("Keluar = auto submit!");
+    kirimJawabanRandom("Auto",soalRandom.length||1);
+  }
+});
 </script>
+
 </body>
 </html>
