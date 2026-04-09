@@ -27,7 +27,14 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:sans-serif;}
 .mode{left:15px;} .lock{right:15px;}
 
 .container{max-width:520px;margin:auto;padding:15px;}
-.card{background:var(--card);padding:16px;border-radius:12px;margin-bottom:10px;cursor:pointer;}
+.card{
+  background:var(--card);
+  padding:16px;
+  border-radius:12px;
+  margin-bottom:10px;
+  cursor:pointer;
+  box-shadow:0 4px 10px rgba(0,0,0,0.1);
+}
 
 input,select,button{
   width:100%;padding:12px;margin-top:8px;border-radius:10px;border:1px solid #ddd;
@@ -36,11 +43,24 @@ button{background:var(--primary);color:#fff;border:none;cursor:pointer;}
 
 .option{background:#eef;padding:10px;margin-top:5px;border-radius:8px;}
 
-#overlay{display:none;position:fixed;width:100%;height:100%;background:rgba(0,0,0,0.5);}
+/* FIX FLOATING POPUP */
+#overlay{
+  display:none;
+  position:fixed;
+  top:0;left:0;
+  width:100%;
+  height:100%;
+  background:rgba(0,0,0,0.5);
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
 #popupGuru{
-  display:none;position:fixed;top:50%;left:50%;
-  transform:translate(-50%,-50%);
-  width:90%;max-width:400px;
+  display:none;
+  width:90%;
+  max-width:400px;
 }
 </style>
 </head>
@@ -53,14 +73,15 @@ HERCU OTG
 <span class="lock" onclick="bukaGuru()">🔒</span>
 </div>
 
-<div id="overlay" onclick="tutupGuru()"></div>
-
-<div id="popupGuru" class="card">
-<h3>Login Guru</h3>
-<input id="guruNama" placeholder="Nama">
-<input id="guruPass" type="password" placeholder="Password">
-<button onclick="loginGuru()">Masuk</button>
-<button onclick="tutupGuru()">Batal</button>
+<!-- POPUP FIX -->
+<div id="overlay" onclick="tutupGuru()">
+  <div id="popupGuru" class="card" onclick="event.stopPropagation()">
+    <h3>Login Guru</h3>
+    <input id="guruNama" placeholder="Nama">
+    <input id="guruPass" type="password" placeholder="Password">
+    <button onclick="loginGuru()">Masuk</button>
+    <button onclick="tutupGuru()">Batal</button>
+  </div>
 </div>
 
 <div class="container">
@@ -108,10 +129,17 @@ function login(){
   loadMapel();
 }
 
-// GURU LOGIN
-function bukaGuru(){overlay.style.display="block";popupGuru.style.display="block";}
-function tutupGuru(){overlay.style.display="none";popupGuru.style.display="none";}
+// POPUP FIX
+function bukaGuru(){
+  overlay.style.display="flex";
+  popupGuru.style.display="block";
+}
+function tutupGuru(){
+  overlay.style.display="none";
+  popupGuru.style.display="none";
+}
 
+// GURU LOGIN
 function loginGuru(){
   if(guruPass.value!=="ADMIN123")return alert("Password salah");
   user=guruNama.value;
@@ -173,7 +201,7 @@ function hapusMapel(id,nama){
   }
 }
 
-// SOAL (PG + ISIAN)
+// SOAL
 function halamanSoal(id){
   currentMapel=id;
 
@@ -271,11 +299,6 @@ function simpanSoal(){
   });
 }
 
-function hapusSoal(id){
-  db.ref("ulangan/mapel/"+currentMapel+"/soal/"+id).remove()
-  .then(()=>halamanSoal(currentMapel));
-}
-
 // MURID
 function loadMapel(){
   db.ref("ulangan/mapel").once("value",snap=>{
@@ -351,63 +374,6 @@ function kirim(mapel,total){
 
   db.ref("ulangan/hasil/"+mapel).push({nama:user,kelas:kelas,nilai:nilai});
   contentBox.innerHTML=`<div class="card"><h2>Nilai: ${nilai}</h2></div>`;
-}
-
-// HASIL (LIST → DETAIL)
-function lihatHasil(){
-  db.ref("ulangan/hasil").once("value",snap=>{
-    let data=snap.val();
-    let html="<button onclick='hapusSemuaHasil()'>🗑️ Hapus Semua</button>";
-
-    if(!data){
-      html+="<div class='card'>Belum ada hasil</div>";
-    }else{
-      for(let mapel in data){
-        let jumlah=Object.keys(data[mapel]).length;
-        html+=`<div class="card" onclick="lihatDetailMapel('${mapel}')">
-        <b>${mapel}</b><br>${jumlah} murid</div>`;
-      }
-    }
-
-    contentBox.innerHTML=html;
-  });
-}
-
-function lihatDetailMapel(mapel){
-  db.ref("ulangan/hasil/"+mapel).once("value",snap=>{
-    let data=snap.val();
-    let html=`
-    <button onclick="lihatHasil()">⬅️</button>
-    <button onclick="hapusMapelHasil('${mapel}')">🗑️ Hapus Mapel</button>
-    <h3>${mapel}</h3>
-    `;
-
-    for(let id in data){
-      let d=data[id];
-      html+=`<div class="card">
-      ${d.nama} (${d.kelas}) - ${d.nilai}
-      <button onclick="hapusHasil('${mapel}','${id}')">🗑️</button>
-      </div>`;
-    }
-
-    contentBox.innerHTML=html;
-  });
-}
-
-function hapusHasil(mapel,id){
-  db.ref("ulangan/hasil/"+mapel+"/"+id).remove().then(()=>lihatDetailMapel(mapel));
-}
-
-function hapusMapelHasil(mapel){
-  if(confirm("Hapus semua hasil mapel ini?")){
-    db.ref("ulangan/hasil/"+mapel).remove().then(()=>lihatHasil());
-  }
-}
-
-function hapusSemuaHasil(){
-  if(confirm("Hapus semua hasil?")){
-    db.ref("ulangan/hasil").remove().then(()=>lihatHasil());
-  }
 }
 
 // ANTI CHEAT
