@@ -9,63 +9,38 @@
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
 <style>
-:root{
-  --bg:#f4f6fb;
-  --card:#ffffff;
-  --text:#1e1e2f;
-  --primary:#6c5ce7;
-  --secondary:#a29bfe;
-}
-
-body.dark{
-  --bg:#121212;
-  --card:#1e1e2f;
-  --text:#ffffff;
-}
-
-body{
-  margin:0;
-  background:var(--bg);
-  color:var(--text);
-  font-family:'Segoe UI',sans-serif;
-}
+*{box-sizing:border-box;font-family:'Segoe UI',sans-serif;}
+body{margin:0;background:linear-gradient(135deg,#667eea,#764ba2);}
 
 /* HEADER */
 .header{
   padding:18px;
   text-align:center;
-  font-weight:bold;
-  background:linear-gradient(135deg,var(--primary),var(--secondary));
+  font-size:20px;
   color:white;
   position:relative;
-  z-index:5;
+  font-weight:bold;
 }
 
-.lock,.mode{
+.lock{
   position:absolute;
+  right:15px;
   top:15px;
   cursor:pointer;
-  z-index:6;
+  font-size:22px;
 }
-.lock{right:15px;}
-.mode{left:15px;}
 
 /* CONTAINER */
-.container{
-  max-width:520px;
-  margin:auto;
-  padding:15px;
-  position:relative;
-  z-index:2;
-}
+.container{max-width:500px;margin:auto;padding:12px;}
 
 /* CARD */
 .card{
-  background:var(--card);
-  border-radius:16px;
+  background:white;
+  border-radius:18px;
   padding:16px;
   margin-bottom:12px;
-  box-shadow:0 5px 15px rgba(0,0,0,0.08);
+  box-shadow:0 8px 20px rgba(0,0,0,0.1);
+  animation:fade .3s;
 }
 
 /* INPUT */
@@ -73,7 +48,7 @@ input,select{
   width:100%;
   padding:12px;
   margin-top:8px;
-  border-radius:10px;
+  border-radius:12px;
   border:1px solid #ddd;
 }
 
@@ -83,15 +58,10 @@ button{
   padding:12px;
   margin-top:10px;
   border:none;
-  border-radius:10px;
-  background:linear-gradient(135deg,var(--primary),var(--secondary));
+  border-radius:12px;
+  background:linear-gradient(135deg,#667eea,#764ba2);
   color:white;
   font-weight:bold;
-  cursor:pointer;
-}
-
-button:active{
-  transform:scale(0.97);
 }
 
 /* OPTION */
@@ -102,28 +72,20 @@ button:active{
   border-radius:10px;
 }
 
-/* OVERLAY FIX */
-#overlay{
-  display:none;
-  position:fixed;
-  top:0;
-  left:0;
-  width:100%;
-  height:100%;
-  background:rgba(0,0,0,0.5);
-  z-index:10;
-}
-
-/* POPUP FIX */
+/* POPUP */
+#overlay{display:none;position:fixed;width:100%;height:100%;background:rgba(0,0,0,0.5);}
 #popupGuru{
   display:none;
   position:fixed;
-  top:50%;
-  left:50%;
+  top:50%;left:50%;
   transform:translate(-50%,-50%);
-  width:90%;
-  max-width:400px;
-  z-index:11;
+  width:90%;max-width:400px;
+}
+
+/* ANIM */
+@keyframes fade{
+  from{opacity:0;transform:translateY(10px);}
+  to{opacity:1;}
 }
 </style>
 </head>
@@ -131,8 +93,7 @@ button:active{
 <body>
 
 <div class="header">
-HERCU OTG
-<span class="mode" onclick="toggleMode()">🌙</span>
+📘 HERCU OTG
 <span class="lock" onclick="bukaLoginGuru()">🔒</span>
 </div>
 
@@ -149,7 +110,6 @@ HERCU OTG
 <div class="container">
 
 <div id="loginBox" class="card">
-<h3>Login Murid</h3>
 <input id="namaInput" placeholder="Nama Murid">
 <select id="kelasSelect">
 <option>10A</option><option>10B</option><option>10C</option>
@@ -176,16 +136,7 @@ const db=firebase.database();
 let user="",role="",kelas="",currentMapel="";
 let soalRandom=[];
 
-// DARK MODE
-function toggleMode(){
-  document.body.classList.toggle("dark");
-  localStorage.setItem("mode",document.body.classList.contains("dark"));
-}
-if(localStorage.getItem("mode")=="true"){
-  document.body.classList.add("dark");
-}
-
-// LOGIN MURID
+// LOGIN
 function loginMurid(){
   user=namaInput.value.trim();
   kelas=kelasSelect.value;
@@ -196,14 +147,8 @@ function loginMurid(){
 }
 
 // LOGIN GURU
-function bukaLoginGuru(){
-  overlay.style.display="block";
-  popupGuru.style.display="block";
-}
-function tutupLoginGuru(){
-  overlay.style.display="none";
-  popupGuru.style.display="none";
-}
+function bukaLoginGuru(){overlay.style.display="block";popupGuru.style.display="block";}
+function tutupLoginGuru(){overlay.style.display="none";popupGuru.style.display="none";}
 
 function loginGuru(){
   if(guruPass.value!=="ADMIN123") return alert("Password salah");
@@ -242,7 +187,7 @@ function toggleLock(id,lock){
   kelolaMapel();
 }
 
-// KELOLA MAPEL
+// KELOLA MAPEL + SOAL
 function kelolaMapel(){
   db.ref("ulangan/mapel").once("value",snap=>{
     let html="";
@@ -260,7 +205,7 @@ function kelolaMapel(){
   });
 }
 
-// HALAMAN SOAL
+// LOAD + EDIT SOAL
 function halamanTambahSoal(id){
   currentMapel=id;
   db.ref("ulangan/mapel/"+id+"/soal").once("value",snap=>{
@@ -363,12 +308,13 @@ function loadMapel(){
   });
 }
 
-// MULAI SOAL
+// RANDOM SOAL
 function mulaiSoal(id,nama){
   currentMapel=id;
   db.ref("ulangan/mapel/"+id+"/soal").once("value",snap=>{
     soalRandom=[];
     snap.forEach(s=>soalRandom.push(s.val()));
+
     soalRandom.sort(()=>Math.random()-0.5);
 
     let html="<h3>"+nama+"</h3>";
