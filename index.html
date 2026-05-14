@@ -212,6 +212,36 @@ placeholder="Nama Lengkap">
 <input id="kodeRoomMurid"
 placeholder="Kode Room">
 
+<select id="kelasInput">
+
+<option value="">Pilih Kelas</option>
+
+<option>10A</option>
+<option>10B</option>
+<option>10C</option>
+<option>10D</option>
+<option>10E</option>
+<option>10F</option>
+<option>10G</option>
+
+<option>11A</option>
+<option>11B</option>
+<option>11C</option>
+<option>11D</option>
+<option>11E</option>
+<option>11F</option>
+<option>11G</option>
+
+<option>12A</option>
+<option>12B</option>
+<option>12C</option>
+<option>12D</option>
+<option>12E</option>
+<option>12F</option>
+<option>12G</option>
+
+</select>
+
 <button onclick="login()">
 Masuk
 </button>
@@ -239,6 +269,7 @@ const db=firebase.database();
 
 let user="";
 let role="";
+let kelas="";
 let guruId="";
 let currentMapel="";
 let soalRandom=[];
@@ -424,12 +455,18 @@ user=namaInput.value.trim();
 
 let kode=kodeRoomMurid.value.trim();
 
+kelas=kelasInput.value;
+
 if(!user){
 return showToast("Isi nama!");
 }
 
 if(!kode){
 return showToast("Isi kode room!");
+}
+
+if(!kelas){
+return showToast("Pilih kelas!");
 }
 
 db.ref("ulangan/mapel").once("value",snap=>{
@@ -444,17 +481,91 @@ let d=data[id];
 
 if(d.kode.toLowerCase()===kode.toLowerCase()){
 
-if(d.lock){
-return showToast("Room dikunci!");
+if(d.lock===true){
+
+showToast("Room ujian sedang dikunci!");
+
+return;
+
 }
 
 ketemu=true;
 
 currentMapel=id;
 
+db.ref(
+"ulangan/hasil/"
++d.owner+"/"
++d.nama+"/kelas/"
++kelas+"/clear"
+).once("value",snapClear=>{
+
+let clear=snapClear.val();
+
+let sudah=false;
+
+if(clear){
+
+for(let k in clear){
+
+if(
+clear[k].nama
+.toLowerCase()
+===
+user.toLowerCase()
+){
+
+sudah=true;
+
+}
+
+}
+
+}
+
+db.ref(
+"ulangan/hasil/"
++d.owner+"/"
++d.nama+"/kelas/"
++kelas+"/unclear"
+).once("value",snapUnclear=>{
+
+let unclear=snapUnclear.val();
+
+if(unclear){
+
+for(let k in unclear){
+
+if(
+unclear[k].nama
+.toLowerCase()
+===
+user.toLowerCase()
+){
+
+sudah=true;
+
+}
+
+}
+
+}
+
+if(sudah){
+
+showToast(
+"Nama sudah mengerjakan ujian!"
+);
+
+return;
+
+}
+
 loginBox.style.display="none";
 
 mulaiSoal(id,d.nama);
+
+});
 
 }
 
@@ -756,7 +867,7 @@ onchange="uploadGambar(this)">
 <img class="previewGambar"
 src="${d.gambar||""}"
 style="
-display:${d.gambar?"block":"block"};
+display:${d.gambar?"block":"none"};
 ">
 
 <div class="pgBox"
@@ -956,9 +1067,7 @@ let tipe=c.querySelector(".tipe").value;
 let data={
 
 soal:c.querySelector(".soal").value,
-
 tipe:tipe,
-
 gambar:c.querySelector(".gambar").value
 
 };
@@ -969,9 +1078,7 @@ data.a=c.querySelector(".a").value;
 data.b=c.querySelector(".b").value;
 data.c=c.querySelector(".c").value;
 data.d=c.querySelector(".d").value;
-
-data.benar=
-c.querySelector(".jawaban").value;
+data.benar=c.querySelector(".jawaban").value;
 
 }else{
 
@@ -1139,7 +1246,6 @@ let detailJawaban=[];
 soalRandom.forEach((d,i)=>{
 
 let jawabanMurid="";
-
 let status=false;
 
 if(d.tipe=="pg"){
@@ -1212,10 +1318,12 @@ let data=snap.val();
 db.ref(
 "ulangan/hasil/"
 +data.owner+"/"
-+mapel+"/clear"
++mapel+"/kelas/"
++kelas+"/clear"
 ).push({
 
 nama:user,
+kelas:kelas,
 nilai:nilai,
 guru:data.guru,
 jawaban:detailJawaban
@@ -1231,268 +1339,6 @@ contentBox.innerHTML=`
 </div>
 
 `;
-
-});
-
-}
-
-function lihatHasil(){
-
-db.ref("ulangan/hasil/"+guruId)
-.once("value",snap=>{
-
-let data=snap.val();
-
-let html="";
-
-if(!data){
-
-html="<div class='card'>Belum ada hasil</div>";
-
-}else{
-
-for(let mapel in data){
-
-html+=`
-
-<div class="card"
-onclick="lihatDetailMapel('${mapel}')">
-
-<b>${mapel}</b>
-
-</div>
-
-`;
-
-}
-
-}
-
-contentBox.innerHTML=html;
-
-});
-
-}
-
-function lihatDetailMapel(mapel){
-
-db.ref(
-"ulangan/hasil/"+guruId+"/"+mapel
-)
-.once("value",snap=>{
-
-let data=snap.val();
-
-let html=`
-
-<button onclick="lihatHasil()">
-⬅️ Kembali
-</button>
-
-<h3>${mapel}</h3>
-
-`;
-
-html+=`
-<div class="card">
-<h3>✅ CLEAR</h3>
-</div>
-`;
-
-if(data && data.clear){
-
-for(let id in data.clear){
-
-let d=data.clear[id];
-
-html+=`
-
-<div class="card">
-
-${d.nama} - ${d.nilai}
-
-<button onclick='lihatJawaban(${JSON.stringify(JSON.stringify(d.jawaban || []))})'>
-📄 Lihat Jawaban
-</button>
-
-<button onclick="hapusHasil(
-'${mapel}',
-'clear',
-'${id}'
-)">
-🗑️
-</button>
-
-</div>
-
-`;
-
-}
-
-}else{
-
-html+=`
-<div class="card">
-Belum ada clear
-</div>
-`;
-
-}
-
-html+=`
-<div class="card">
-<h3>⚠️ UNCLEAR</h3>
-</div>
-`;
-
-if(data && data.unclear){
-
-for(let id in data.unclear){
-
-let d=data.unclear[id];
-
-html+=`
-
-<div class="card">
-
-${d.nama} - ${d.nilai}
-
-<br>Auto Submit
-
-<button onclick="hapusHasil(
-'${mapel}',
-'unclear',
-'${id}'
-)">
-🗑️
-</button>
-
-</div>
-
-`;
-
-}
-
-}else{
-
-html+=`
-<div class="card">
-Belum ada unclear
-</div>
-`;
-
-}
-
-contentBox.innerHTML=html;
-
-});
-
-}
-
-function lihatJawaban(data){
-
-let jawaban=JSON.parse(data);
-
-let html=`
-
-<button onclick="lihatHasil()">
-⬅️ Kembali
-</button>
-
-<h3>Detail Jawaban</h3>
-
-`;
-
-jawaban.forEach((j,i)=>{
-
-html+=`
-
-<div class="card">
-
-<b>${i+1}. ${j.soal}</b>
-
-${j.gambar ?
-
-`<img src="${j.gambar}"
-style="
-width:100%;
-margin-top:10px;
-border-radius:12px;
-">`
-
-:""}
-
-`;
-
-if(j.tipe=="pg"){
-
-html+=`
-
-<div class="option">
-A. ${j.a}
-</div>
-
-<div class="option">
-B. ${j.b}
-</div>
-
-<div class="option">
-C. ${j.c}
-</div>
-
-<div class="option">
-D. ${j.d}
-</div>
-
-`;
-
-}
-
-html+=`
-
-<br>
-
-Jawaban Murid :
-<b>${j.jawaban || "-"}</b>
-
-<br><br>
-
-Jawaban Benar :
-<b>${j.benar}</b>
-
-<br><br>
-
-${j.status
-? "✅ Benar"
-: "❌ Salah"}
-
-</div>
-
-`;
-
-});
-
-contentBox.innerHTML=html;
-
-}
-
-function hapusHasil(mapel,jenis,id){
-
-showConfirm("Hapus hasil?",()=>{
-
-db.ref(
-"ulangan/hasil/"
-+guruId+"/"
-+mapel+"/"
-+jenis+"/"
-+id
-)
-.remove()
-.then(()=>{
-
-lihatDetailMapel(mapel);
-
-});
 
 });
 
@@ -1514,10 +1360,12 @@ let data=snap.val();
 db.ref(
 "ulangan/hasil/"
 +data.owner+"/"
-+data.nama+"/unclear"
++data.nama+"/kelas/"
++kelas+"/unclear"
 ).push({
 
 nama:user,
+kelas:kelas,
 nilai:0,
 guru:data.guru,
 auto:true
