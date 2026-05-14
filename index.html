@@ -442,7 +442,11 @@ for(let id in data){
 
 let d=data[id];
 
-if(d.kode===kode){
+if(d.kode.toLowerCase()===kode.toLowerCase()){
+
+if(d.lock){
+return showToast("Room dikunci!");
+}
 
 ketemu=true;
 
@@ -502,6 +506,28 @@ if(!kode){
 return showToast("Isi kode room!");
 }
 
+db.ref("ulangan/mapel").once("value",snap=>{
+
+let data=snap.val();
+
+let sama=false;
+
+if(data){
+
+for(let id in data){
+
+if(data[id].kode.toLowerCase()===kode.toLowerCase()){
+sama=true;
+}
+
+}
+
+}
+
+if(sama){
+return showToast("Kode room sudah dipakai!");
+}
+
 db.ref("ulangan/mapel").push({
 
 nama:nama,
@@ -515,6 +541,8 @@ guru:user
 showToast("Mapel dibuat!");
 
 kelolaMapel();
+
+});
 
 });
 
@@ -728,7 +756,7 @@ onchange="uploadGambar(this)">
 <img class="previewGambar"
 src="${d.gambar||""}"
 style="
-display:${d.gambar?"block":"none"};
+display:${d.gambar?"block":"block"};
 ">
 
 <div class="pgBox"
@@ -752,21 +780,10 @@ placeholder="Jawaban D">
 
 <select class="jawaban">
 
-<option ${d.benar=="A"?"selected":""}>
-A
-</option>
-
-<option ${d.benar=="B"?"selected":""}>
-B
-</option>
-
-<option ${d.benar=="C"?"selected":""}>
-C
-</option>
-
-<option ${d.benar=="D"?"selected":""}>
-D
-</option>
+<option ${d.benar=="A"?"selected":""}>A</option>
+<option ${d.benar=="B"?"selected":""}>B</option>
+<option ${d.benar=="C"?"selected":""}>C</option>
+<option ${d.benar=="D"?"selected":""}>D</option>
 
 </select>
 
@@ -867,7 +884,6 @@ div.innerHTML=`
 onchange="ubahTipe(this)">
 
 <option value="pg">PG</option>
-
 <option value="isian">Isian</option>
 
 </select>
@@ -1118,7 +1134,13 @@ sudahKirim=true;
 
 let benar=0;
 
+let detailJawaban=[];
+
 soalRandom.forEach((d,i)=>{
+
+let jawabanMurid="";
+
+let status=false;
 
 if(d.tipe=="pg"){
 
@@ -1126,8 +1148,17 @@ let p=document.querySelector(
 'input[name=q'+i+']:checked'
 );
 
-if(p && p.value===d.benar){
+if(p){
+
+jawabanMurid=p.value;
+
+if(p.value===d.benar){
+
 benar++;
+status=true;
+
+}
+
 }
 
 }else{
@@ -1138,13 +1169,34 @@ let isi=document
 .toLowerCase()
 .trim();
 
+jawabanMurid=isi;
+
 let arr=d.benar.split(",");
 
 if(arr.includes(isi)){
+
 benar++;
+status=true;
+
 }
 
 }
+
+detailJawaban.push({
+
+soal:d.soal,
+gambar:d.gambar || "",
+jawaban:jawabanMurid,
+benar:d.benar,
+status:status,
+tipe:d.tipe,
+
+a:d.a || "",
+b:d.b || "",
+c:d.c || "",
+d:d.d || ""
+
+});
 
 });
 
@@ -1165,7 +1217,8 @@ db.ref(
 
 nama:user,
 nilai:nilai,
-guru:data.guru
+guru:data.guru,
+jawaban:detailJawaban
 
 });
 
@@ -1258,6 +1311,10 @@ html+=`
 
 ${d.nama} - ${d.nilai}
 
+<button onclick='lihatJawaban(${JSON.stringify(JSON.stringify(d.jawaban || []))})'>
+📄 Lihat Jawaban
+</button>
+
 <button onclick="hapusHasil(
 '${mapel}',
 'clear',
@@ -1329,6 +1386,93 @@ Belum ada unclear
 contentBox.innerHTML=html;
 
 });
+
+}
+
+function lihatJawaban(data){
+
+let jawaban=JSON.parse(data);
+
+let html=`
+
+<button onclick="lihatHasil()">
+⬅️ Kembali
+</button>
+
+<h3>Detail Jawaban</h3>
+
+`;
+
+jawaban.forEach((j,i)=>{
+
+html+=`
+
+<div class="card">
+
+<b>${i+1}. ${j.soal}</b>
+
+${j.gambar ?
+
+`<img src="${j.gambar}"
+style="
+width:100%;
+margin-top:10px;
+border-radius:12px;
+">`
+
+:""}
+
+`;
+
+if(j.tipe=="pg"){
+
+html+=`
+
+<div class="option">
+A. ${j.a}
+</div>
+
+<div class="option">
+B. ${j.b}
+</div>
+
+<div class="option">
+C. ${j.c}
+</div>
+
+<div class="option">
+D. ${j.d}
+</div>
+
+`;
+
+}
+
+html+=`
+
+<br>
+
+Jawaban Murid :
+<b>${j.jawaban || "-"}</b>
+
+<br><br>
+
+Jawaban Benar :
+<b>${j.benar}</b>
+
+<br><br>
+
+${j.status
+? "✅ Benar"
+: "❌ Salah"}
+
+</div>
+
+`;
+
+});
+
+contentBox.innerHTML=html;
 
 }
 
