@@ -6,7 +6,7 @@
 <title>Special Thanks & Credits</title>
 
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
 
 *{
     margin:0;
@@ -16,20 +16,21 @@
 }
 
 body{
-    background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
-    color:#fff;
+    background: linear-gradient(135deg, #dcefff, #b7d9ff, #7ab8ff);
+    color:#123456;
     overflow-x:hidden;
+    min-height:100vh;
 }
 
-/* Glow background effect */
+/* Background Glow */
 body::before{
     content:"";
     position:fixed;
     width:500px;
     height:500px;
-    background: radial-gradient(circle, #00adb5, transparent);
-    top:-100px;
-    left:-100px;
+    background: radial-gradient(circle, rgba(0,119,255,0.35), transparent);
+    top:-120px;
+    left:-120px;
     filter:blur(120px);
     z-index:-1;
 }
@@ -37,59 +38,70 @@ body::before{
 body::after{
     content:"";
     position:fixed;
-    width:400px;
-    height:400px;
-    background: radial-gradient(circle, #ffd369, transparent);
-    bottom:-100px;
+    width:450px;
+    height:450px;
+    background: radial-gradient(circle, rgba(255,255,255,0.9), transparent);
+    bottom:-150px;
     right:-100px;
     filter:blur(120px);
     z-index:-1;
 }
 
 .container{
-    max-width:900px;
+    max-width:950px;
     margin:auto;
-    padding:30px;
+    padding:35px 20px;
+    animation:fadeIn 1s ease;
 }
 
 h1{
     text-align:center;
-    font-size:32px;
-    color:#ffd369;
+    font-size:36px;
+    color:#0066cc;
     margin-bottom:20px;
-    text-shadow:0 0 10px rgba(255,211,105,0.6);
+    text-shadow:0 0 12px rgba(0,102,204,0.25);
+}
+
+.intro{
+    text-align:center;
+    margin-bottom:30px;
+    line-height:1.8;
+    font-size:15px;
 }
 
 h2{
     margin-top:30px;
-    color:#00adb5;
+    color:#00509d;
     font-weight:600;
+    margin-bottom:10px;
 }
 
-p{
-    line-height:1.7;
-}
-
-/* Glass box */
+/* Card */
 .box{
-    background: rgba(255,255,255,0.05);
-    backdrop-filter: blur(12px);
-    border:1px solid rgba(255,255,255,0.1);
-    padding:18px;
-    border-radius:15px;
-    margin-top:12px;
-    transition:0.3s;
+    background: rgba(255,255,255,0.55);
+    backdrop-filter: blur(14px);
+    border:1px solid rgba(255,255,255,0.7);
+    padding:22px;
+    border-radius:20px;
+    transition:0.3s ease;
+    box-shadow:0 8px 22px rgba(0,0,0,0.08);
 }
 
 .box:hover{
-    transform: translateY(-5px) scale(1.01);
-    box-shadow:0 10px 25px rgba(0,0,0,0.3);
+    transform:translateY(-5px);
+    box-shadow:0 15px 30px rgba(0,102,204,0.15);
 }
 
 .highlight{
-    color:#ffd369;
-    font-weight:600;
-    text-shadow:0 0 8px rgba(255,211,105,0.5);
+    color:#0077ff;
+    font-weight:700;
+    font-size:20px;
+    text-shadow:0 0 8px rgba(0,119,255,0.25);
+}
+
+p{
+    line-height:1.9;
+    font-size:15px;
 }
 
 ul{
@@ -97,22 +109,20 @@ ul{
 }
 
 li{
-    margin-top:5px;
+    margin-top:8px;
+    line-height:1.7;
 }
 
 /* Footer */
 footer{
     text-align:center;
     margin-top:50px;
+    color:#24527a;
+    opacity:0.8;
     font-size:13px;
-    opacity:0.6;
 }
 
 /* Animation */
-.container{
-    animation:fadeIn 1s ease;
-}
-
 @keyframes fadeIn{
     from{
         opacity:0;
@@ -123,35 +133,76 @@ footer{
         transform:translateY(0);
     }
 }
+
+/* Responsive */
+@media(max-width:600px){
+
+    h1{
+        font-size:28px;
+    }
+
+    .container{
+        padding:25px 15px;
+    }
+
+    .box{
+        padding:18px;
+    }
+
+    p, li{
+        font-size:14px;
+    }
+}
 </style>
 </head>
 
 <body>
 
 <div class="container">
+
     <h1>✨ SPECIAL THANKS & CREDITS ✨</h1>
 
-    <p>
-        Dengan penuh rasa syukur dan hormat, saya mengucapkan terima kasih sebesar-besarnya kepada semua pihak 
-        yang telah memberikan dukungan, inspirasi, dan kontribusi dalam pembuatan proyek ini.
+    <p class="intro">
+        Dengan rasa syukur dan penuh terima kasih, saya ingin mengucapkan apresiasi 
+        kepada semua orang yang sudah mendukung perjalanan pembuatan project ini.
+        Mulai dari memberi semangat, membantu saat ada kesulitan, sampai menjadi tempat 
+        berbagi ide dan pengalaman selama proses pengembangan berlangsung.
     </p>
 
     <h2>👤 Creator</h2>
     <div class="box">
-        <p>Terima kasih kepada:</p>
+        <p>Project ini dibuat dan dikembangkan oleh:</p>
+        <br>
+
         <p class="highlight">Al Arifky Hastri Putra</p>
+
+        <br>
+
         <p>
-            Sebagai pencipta utama yang telah merancang, mengembangkan, dan menyelesaikan proyek ini 
-            dengan penuh dedikasi, kerja keras, dan semangat pantang menyerah.
+            Sebuah project yang dibuat dari proses belajar, rasa penasaran, 
+            dan keinginan untuk terus berkembang. Banyak waktu, tenaga, 
+            dan pengalaman yang diberikan selama proses pembuatan project ini 
+            hingga bisa sampai di tahap sekarang.
         </p>
+
+        <br>
+
+        <p>
+            Walaupun masih memiliki banyak kekurangan, project ini diharapkan 
+            bisa menjadi sesuatu yang bermanfaat dan terus berkembang menjadi lebih baik ke depannya.
+        </p>
+
+        <br>
+
         <p><b>Studio:</b> Studio Chiutchiyu, Pela</p>
     </div>
 
     <h2>🤝 Support System</h2>
     <div class="box">
         <ul>
-            <li>Teman-teman Discord yang selalu memberikan dukungan, ide, dan semangat</li>
-            <li>Teman-teman Informatika yang telah membantu dalam proses belajar, diskusi, dan pengembangan</li>
+            <li>Teman-teman Discord yang selalu memberikan dukungan dan ide baru</li>
+            <li>Teman-teman Informatika yang membantu dalam belajar dan diskusi</li>
+            <li>Semua pihak yang pernah memberi masukan, kritik, maupun semangat</li>
         </ul>
     </div>
 
@@ -159,46 +210,55 @@ footer{
     <div class="box">
         <ul>
             <li>SMA Negeri 1 Bengkayang sebagai tempat belajar dan berkembang</li>
-            <li>Pak Aji yang telah memberikan bimbingan dan arahan</li>
+            <li>Pak Aji yang telah memberikan arahan dan dukungan selama proses belajar</li>
         </ul>
     </div>
 
     <h2>📍 Lokasi & Identitas</h2>
     <div class="box">
         <p>
-            <span class="highlight">Bengkayang, Indonesia</span><br>
-            Menjadi sumber semangat dan identitas dalam berkarya.
+            <span class="highlight">Bengkayang, Indonesia</span>
         </p>
-    </div>
 
-    <h2>🇮🇩 Inspirasi</h2>
-    <div class="box">
+        <br>
+
         <p>
-            <span class="highlight">Prabowo Subianto</span><br>
-            Menjadi salah satu inspirasi dalam semangat untuk terus berkembang.
+            Menjadi bagian dari perjalanan dan sumber semangat dalam berkarya.
         </p>
     </div>
 
     <h2>🚀 Pengembangan ke Depan</h2>
     <div class="box">
         <p>
-            Proyek ini akan terus dikembangkan dengan fitur baru, peningkatan kualitas, 
-            dan pengalaman pengguna yang lebih baik.
+            Project ini akan terus diperbaiki dan dikembangkan seiring bertambahnya pengalaman 
+            dan pengetahuan. Akan ada fitur baru, tampilan yang lebih baik, 
+            dan peningkatan lainnya di masa depan.
         </p>
     </div>
 
     <h2>💬 Penutup</h2>
     <div class="box">
         <p>
-            Proyek ini masih jauh dari sempurna, namun diharapkan dapat memberikan manfaat 
-            dan inspirasi bagi banyak orang.
+            Terima kasih untuk semua dukungan yang sudah diberikan.
+            Dukungan kecil sekalipun sangat berarti dalam proses pengembangan project ini.
         </p>
-        <p><b>Terima kasih atas dukungannya 🙏</b></p>
+
+        <br>
+
+        <p>
+            Semoga project ini bisa memberikan manfaat dan menjadi langkah awal 
+            untuk karya-karya berikutnya.
+        </p>
+
+        <br>
+
+        <p><b>Terima kasih 🙏</b></p>
     </div>
 
     <footer>
         © 2026 - Project Credits
     </footer>
+
 </div>
 
 </body>
